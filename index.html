@@ -1074,7 +1074,7 @@ function renderFromClaudeData(d, addr){
   const pc=document.getElementById('priceChange');
   pc.textContent=(d.change24h||'')+' 24h';
   pc.style.color=(d.change24h||'').startsWith('-')?'var(--red)':'var(--green)';
-  document.getElementById('priceNote').textContent='Data via DexScreener · fetched by Claude';
+  document.getElementById('priceStats').textContent='Data via DexScreener · fetched by Claude';
   document.getElementById('dataSourceTags').innerHTML=`<span class="data-source-tag tag-live">DEXSCREENER LIVE</span><span class="data-source-tag tag-live">CLAUDE COUNCIL</span>${document.getElementById('heliusKey').value.trim()?'<span class="data-source-tag tag-live">HELIUS</span>':''}`;
   document.getElementById('analysisContent').style.display='block';
 }
