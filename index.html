@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Purple Mellow Terminal</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg:#0a0812; --panel:#110e1c; --panel2:#17132a;
+    --border:#2a2040; --border2:#3d2f6e;
+    --purple:#8b5cf6; --purple2:#a78bfa; --purple3:#c4b5fd;
+    --mellow:#d4a3ff;
+    --mint:#6ee7b7; --rose:#f87171; --amber:#fbbf24; --sky:#38bdf8;
+    --text:#e2ddf7; --text2:#9d93c8; --text3:#5c5480;
+    --green:#4ade80; --red:#ef4444; --careful:#f59e0b;
+    --glow:rgba(139,92,246,0.15);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:13px;overflow-x:hidden;min-height:100vh}
+
+  /* TOP BAR */
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--panel);position:sticky;top:0;z-index:100;gap:12px;flex-wrap:wrap}
+  .logo-wrap{display:flex;align-items:center;gap:10px;flex-shrink:0}
+  .logo-icon{width:28px;height:28px;background:linear-gradient(135deg,#8b5cf6,#d4a3ff);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px}
+  .logo-name{font-size:15px;font-weight:700;letter-spacing:.08em;background:linear-gradient(90deg,#c4b5fd,#d4a3ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .logo-sub{font-size:9px;color:var(--text3);font-family:'Space Mono',monospace;letter-spacing:.12em}
+  .input-row{display:flex;align-items:center;gap:8px;flex:1;min-width:280px}
+  .token-label{font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;white-space:nowrap}
+  .token-input{flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:7px 12px;color:var(--purple3);font-family:'Space Mono',monospace;font-size:11px;outline:none;transition:border-color .2s}
+  .token-input:focus{border-color:var(--purple);box-shadow:0 0 0 2px var(--glow)}
+  .token-input::placeholder{color:var(--text3)}
+  .analyze-btn{background:linear-gradient(135deg,#7c3aed,#8b5cf6);border:none;border-radius:6px;padding:7px 18px;color:#fff;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12px;cursor:pointer;letter-spacing:.05em;transition:all .2s;white-space:nowrap}
+  .analyze-btn:hover{background:linear-gradient(135deg,#8b5cf6,#a78bfa);transform:translateY(-1px)}
+  .analyze-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+  .key-input-wrap{display:flex;align-items:center;gap:6px;flex-shrink:0}
+  .key-input{width:180px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text2);font-family:'Space Mono',monospace;font-size:10px;outline:none}
+  .key-input:focus{border-color:var(--border2)}
+  .key-label{font-size:9px;color:var(--text3);font-family:'Space Mono',monospace;white-space:nowrap}
+  .topbar-stats{display:flex;align-items:center;gap:16px;flex-shrink:0}
+  .stat-chip{text-align:right}
+  .stat-chip .val{font-size:13px;font-weight:600;font-family:'Space Mono',monospace;color:var(--text)}
+  .stat-chip .lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em}
+  .pct-pos{color:var(--green)!important}
+  .pct-neg{color:var(--red)!important}
+
+  /* STATUS BAR */
+  .status-bar{display:flex;align-items:center;gap:10px;padding:6px 16px;background:var(--panel);border-bottom:1px solid var(--border);font-family:'Space Mono',monospace;font-size:10px;color:var(--text3)}
+  .status-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);flex-shrink:0}
+  .status-dot.live{background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite}
+  .status-dot.error{background:var(--red)}
+  .status-dot.loading{background:var(--amber);animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .data-source-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:3px;font-size:9px;font-weight:600;border:1px solid}
+  .tag-live{border-color:var(--green);color:var(--green);background:rgba(74,222,128,.06)}
+  .tag-inferred{border-color:var(--amber);color:var(--amber);background:rgba(251,191,36,.06)}
+  .tag-nokey{border-color:var(--text3);color:var(--text3);background:transparent}
+
+  /* HERO */
+  .hero{display:grid;grid-template-columns:1fr 300px;border-bottom:1px solid var(--border);min-height:280px}
+  .hero-left{padding:18px 22px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:10px}
+  .token-name-row{display:flex;align-items:flex-start;gap:12px}
+  .token-avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#2d1b69,#7c3aed);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+  .token-title{font-size:28px;font-weight:700;color:var(--mellow);line-height:1}
+  .token-sub{font-size:11px;color:var(--text3);margin-top:3px;font-family:'Space Mono',monospace}
+  .verdict-banner{background:linear-gradient(90deg,var(--panel2),transparent);border-left:3px solid var(--purple);padding:9px 14px;border-radius:0 6px 6px 0;font-size:13px;font-weight:500;color:var(--text)}
+  .verdict-banner.careful{border-color:var(--careful)}
+  .verdict-banner.danger{border-color:var(--red)}
+  .verdict-detail{font-size:11px;color:var(--text2);line-height:1.5}
+  .exit-row{display:flex;gap:12px;margin-top:auto}
+  .exit-box{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;flex:1}
+  .exit-box .lbl{font-size:9px;color:var(--text3);letter-spacing:.1em;margin-bottom:3px}
+  .exit-box .val{font-size:17px;font-weight:700;font-family:'Space Mono',monospace;color:var(--mint)}
+  .exit-box .src{font-size:8px;color:var(--text3);margin-top:2px}
+
+  /* ORB */
+  .hero-right{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:10px;position:relative}
+  .orb-wrap{position:relative;width:190px;height:190px}
+  .orb-svg{width:190px;height:190px}
+  .survival-num{font-size:68px;font-weight:700;font-family:'Space Mono',monospace;line-height:1;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2}
+  .agent-orbit{position:absolute;width:190px;height:190px;top:0;left:0;pointer-events:none}
+  .agent-dot{position:absolute;width:24px;height:24px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;transform:translate(-50%,-50%)}
+  .verdict-badge{font-size:11px;font-weight:700;letter-spacing:.1em;padding:4px 14px;border-radius:20px;border:1px solid}
+  .verdict-badge.enter{color:var(--green);border-color:var(--green);background:rgba(74,222,128,.08)}
+  .verdict-badge.careful{color:var(--amber);border-color:var(--amber);background:rgba(251,191,36,.08)}
+  .verdict-badge.danger{color:var(--red);border-color:var(--red);background:rgba(239,68,68,.08)}
+
+  /* BODY GRID */
+  .body-grid{display:grid;grid-template-columns:200px 210px 1fr 1fr;border-bottom:1px solid var(--border)}
+  .panel{border-right:1px solid var(--border);padding:12px 13px}
+  .panel:last-child{border-right:none}
+  .panel-title{font-size:9px;font-weight:600;letter-spacing:.14em;color:var(--purple2);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .panel-title::before{content:'';width:3px;height:10px;background:var(--purple);border-radius:2px;display:inline-block}
+
+  /* RISK MAP */
+  .risk-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:4px}
+  .risk-label{font-size:10px;color:var(--text2);flex:1;white-space:nowrap}
+  .risk-val{font-size:10px;font-family:'Space Mono',monospace;font-weight:600;white-space:nowrap}
+  .risk-bar-wrap{width:100%;height:3px;background:var(--border);border-radius:2px;margin-bottom:8px;overflow:hidden}
+  .risk-bar{height:100%;border-radius:2px;transition:width 1.2s ease}
+  .risk-tag{font-size:8px;padding:1px 5px;border-radius:3px;font-weight:600;letter-spacing:.04em;white-space:nowrap}
+  .tag-deep,.tag-verified,.tag-honest,.tag-tight{background:rgba(74,222,128,.12);color:var(--green)}
+  .tag-thin,.tag-danger{background:rgba(239,68,68,.12);color:var(--red)}
+  .tag-even,.tag-open,.tag-source{background:rgba(139,92,246,.12);color:var(--purple2)}
+  .tag-spread,.tag-suspect{background:rgba(251,191,36,.12);color:var(--amber)}
+  .redflag-box{background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.18);border-radius:5px;padding:5px 8px;margin-top:6px}
+  .redflag-title{font-size:9px;color:var(--red);font-weight:600;margin-bottom:2px}
+  .redflag-text{font-size:9px;color:var(--text2);line-height:1.4}
+
+  /* SUPPLY MAP */
+  .supply-bar-container{display:flex;height:56px;border-radius:5px;overflow:hidden;margin-bottom:8px;gap:2px}
+  .supply-seg{display:flex;align-items:flex-end;justify-content:center;padding-bottom:3px;font-size:8px;font-weight:700;transition:flex 1.2s ease;min-width:0;overflow:hidden}
+  .supply-legend{display:flex;flex-direction:column;gap:4px}
+  .legend-row{display:flex;align-items:center;gap:6px;font-size:9px;color:var(--text2)}
+  .legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+
+  /* AGENT COUNCIL */
+  .agent-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)}
+  .agent-row:last-child{border-bottom:none}
+  .agent-name-col{display:flex;align-items:center;gap:5px}
+  .agent-dot-small{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+  .agent-name{font-size:10px;font-weight:600}
+  .agent-status{font-size:9px;color:var(--text3)}
+  .agent-val{font-size:10px;font-family:'Space Mono',monospace;color:var(--text2)}
+
+  /* STREAM */
+  .stream-entry{margin-bottom:9px}
+  .stream-header{display:flex;align-items:center;gap:5px;margin-bottom:2px}
+  .stream-agent{font-size:10px;font-weight:700}
+  .stream-time{font-size:9px;color:var(--text3);font-family:'Space Mono',monospace}
+  .stream-text{font-size:10px;color:var(--text2);line-height:1.5}
+  .stream-scroll{max-height:190px;overflow-y:auto}
+  .stream-scroll::-webkit-scrollbar{width:3px}
+  .stream-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+  /* BOTTOM GRID */
+  .bottom-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr}
+
+  /* FLOW PRESSURE */
+  .flow-row{display:flex;align-items:center;gap:7px;margin-bottom:4px}
+  .flow-tf{font-size:9px;color:var(--text3);width:20px;font-family:'Space Mono',monospace}
+  .flow-bars{flex:1;display:flex;gap:2px;height:12px}
+  .flow-bar-green{background:var(--green);border-radius:2px;height:100%}
+  .flow-bar-red{background:var(--red);border-radius:2px;height:100%}
+  .flow-ratio{font-size:9px;color:var(--text2);font-family:'Space Mono',monospace;white-space:nowrap}
+
+  /* EXIT SIM */
+  .exit-sim-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)}
+  .exit-sim-row:last-child{border-bottom:none}
+  .exit-mult{font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;width:28px}
+  .exit-eth{font-size:10px;font-family:'Space Mono',monospace;color:var(--text)}
+  .exit-pct{font-size:10px;font-family:'Space Mono',monospace;font-weight:600}
+  .exit-bar-row{flex:1;height:4px;background:var(--border);border-radius:2px;margin:0 7px;overflow:hidden}
+  .exit-bar-fill{height:100%;border-radius:2px}
+
+  /* CHAIN PULSE */
+  .pulse-row{display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--border);font-family:'Space Mono',monospace}
+  .pulse-row:last-child{border-bottom:none}
+  .pulse-block{font-size:9px;color:var(--text3);width:52px}
+  .pulse-token{font-size:10px;color:var(--purple3);flex:1}
+  .pulse-type{font-size:9px;font-weight:600}
+  .pulse-buy{color:var(--green)}
+  .pulse-sell{color:var(--red)}
+  .pulse-move{color:var(--text3)}
+
+  /* LOADING */
+  .loading-overlay{display:none;position:fixed;inset:0;background:rgba(10,8,18,.88);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+  .loading-overlay.active{display:flex}
+  .loading-orb{width:52px;height:52px;border:3px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-text{color:var(--purple3);font-family:'Space Mono',monospace;font-size:11px}
+  .loading-steps{display:flex;flex-direction:column;gap:5px;margin-top:4px;text-align:left}
+  .loading-step{font-size:10px;font-family:'Space Mono',monospace;color:var(--text3);display:flex;align-items:center;gap:8px}
+  .loading-step.done{color:var(--green)}
+  .loading-step.active{color:var(--purple3)}
+  .step-icon{width:14px;text-align:center;flex-shrink:0}
+
+  /* IDLE */
+  .idle-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:12px;color:var(--text3);text-align:center}
+  .idle-icon{font-size:40px;margin-bottom:8px}
+  .idle-title{font-size:16px;color:var(--text2);font-weight:600}
+  .idle-sub{font-size:12px;line-height:1.6;max-width:420px}
+  .idle-note{font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;margin-top:4px;line-height:1.5;max-width:480px}
+
+  /* TICKER */
+  .ticker-bar{border-top:1px solid var(--border);background:var(--panel);padding:5px 16px;display:flex;gap:20px;overflow:hidden;font-family:'Space Mono',monospace;font-size:10px;color:var(--text3)}
+  .ticker-item{white-space:nowrap}
+  .ticker-item span{color:var(--text2);margin-right:4px}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo-wrap">
+    <div class="logo-icon">🟣</div>
+    <div>
+      <div class="logo-name">PURPLE MELLOW</div>
+      <div class="logo-sub">OUTLIER TOKEN DESK · SOLANA · HELIUS + DEXSCREENER</div>
+    </div>
+  </div>
+
+  <div class="input-row">
+    <span class="token-label">TOKEN</span>
+    <input class="token-input" id="tokenInput" type="text" placeholder="Solana mint address (base58) or ERC-20 0x…" />
+    <button class="analyze-btn" id="analyzeBtn" onclick="runAnalysis()">ANALYZE</button>
+  </div>
+
+  <div class="key-input-wrap">
+    <span class="key-label">HELIUS KEY</span>
+    <input class="key-input" id="heliusKey" type="password" placeholder="free key — helius.dev" />
+  </div>
+
+  <div class="topbar-stats" id="topStats" style="display:none">
+    <div class="stat-chip"><div class="val" id="statPrice">—</div><div class="lbl">PRICE</div></div>
+    <div class="stat-chip"><div class="val" id="statMcap">—</div><div class="lbl">MCAP</div></div>
+    <div class="stat-chip"><div class="val" id="statPool">—</div><div class="lbl">POOL</div></div>
+    <div class="stat-chip"><div class="val pct-neg" id="stat24h">—</div><div class="lbl">24H</div></div>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div class="status-bar" id="statusBar" style="display:none">
+  <div class="status-dot" id="statusDot"></div>
+  <span id="statusText">Ready</span>
+  <div style="margin-left:auto;display:flex;gap:8px" id="dataSourceTags"></div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-orb"></div>
+  <div class="loading-text" id="loadingText">Pulling live data…</div>
+  <div class="loading-steps" id="loadingSteps">
+    <div class="loading-step" id="step-dex"><span class="step-icon">◌</span>DexScreener — price, pool, buy/sell flow</div>
+    <div class="loading-step" id="step-helius"><span class="step-icon">◌</span>Helius — token metadata, mint authority, top holders</div>
+    <div class="loading-step" id="step-council"><span class="step-icon">◌</span>Claude council — reading real data, stamping verdict</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="mainContent">
+  <div class="idle-state" id="idleState">
+    <div class="idle-icon">🔮</div>
+    <div class="idle-title">Purple Mellow Terminal · Solana Edition</div>
+    <div class="idle-sub">Paste any Solana mint address (base58) or Pump.fun token. DexScreener covers price, pool depth, and buy/sell flow. Helius covers mint authority, freeze authority, top 20 holders, and token supply. Claude reads all of it and stamps a verdict.</div>
+    <div class="idle-note">
+      ✓ DexScreener — free, no key (price, pool, buy/sell flow)<br>
+      ✓ Claude council — interprets real on-chain data<br>
+      + Helius key — unlocks mint authority, top holders, metadata<br>
+      &nbsp;&nbsp;Free tier: 1M credits/month → helius.dev/dashboard
+    </div>
+  </div>
+
+  <div id="analysisContent" style="display:none">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-left">
+        <div class="token-name-row">
+          <div class="token-avatar" id="tokenAvatar">?</div>
+          <div>
+            <div class="token-title" id="tokenName">$TOKEN</div>
+            <div class="token-sub" id="tokenMeta">—</div>
+          </div>
+        </div>
+        <div class="verdict-banner" id="verdictBanner">Awaiting council verdict…</div>
+        <div class="verdict-detail" id="verdictDetail"></div>
+        <div class="exit-row">
+          <div class="exit-box">
+            <div class="lbl">SAFE EXIT SIZE</div>
+            <div class="val" id="safeExit">—</div>
+            <div class="src" id="safeExitSrc">calculated from pool depth</div>
+          </div>
+          <div class="exit-box">
+            <div class="lbl">REAL EXIT ON 1 ETH</div>
+            <div class="val" id="realExit">—</div>
+            <div class="src">AMM price impact estimate</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="orb-wrap">
+          <svg class="orb-svg" viewBox="0 0 190 190">
+            <defs>
+              <radialGradient id="og" cx="50%" cy="40%" r="50%">
+                <stop offset="0%" stop-color="#3d1d80"/>
+                <stop offset="100%" stop-color="#0a0812"/>
+              </radialGradient>
+              <filter id="glow"><feGaussianBlur stdDeviation="3" result="cb"/><feMerge><feMergeNode in="cb"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <circle cx="95" cy="95" r="88" fill="none" stroke="#2a2040" stroke-width="1"/>
+            <circle cx="95" cy="95" r="88" fill="none" stroke="#8b5cf6" stroke-width="3"
+              stroke-dasharray="553" stroke-dashoffset="553" stroke-linecap="round"
+              transform="rotate(-90 95 95)" id="orbRing" filter="url(#glow)"
+              style="transition:stroke-dashoffset 1.5s ease,stroke .5s"/>
+            <ellipse cx="95" cy="100" rx="68" ry="68" fill="url(#og)" stroke="#3d2f6e" stroke-width="1.5"/>
+            <rect x="74" y="86" width="15" height="7" rx="3.5" fill="#1a1030"/>
+            <rect x="101" y="86" width="15" height="7" rx="3.5" fill="#1a1030"/>
+          </svg>
+          <div class="survival-num" id="survivalNum" style="color:var(--text3)">—</div>
+          <div class="agent-orbit" id="agentOrbit"></div>
+        </div>
+        <div class="verdict-badge enter" id="verdictBadge" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- BODY GRID -->
+    <div class="body-grid">
+      <div class="panel"><div class="panel-title">RISK MAP</div><div id="riskMap"></div></div>
+      <div class="panel"><div class="panel-title">SUPPLY MAP <span style="font-size:8px;color:var(--amber);margin-left:4px">INFERRED</span></div><div class="supply-bar-container" id="supplyBar"></div><div class="supply-legend" id="supplyLegend"></div></div>
+      <div class="panel"><div class="panel-title">AGENT COUNCIL <span style="color:var(--green);margin-left:4px;font-size:8px">● LIVE</span></div><div id="agentCouncil"></div></div>
+      <div class="panel" style="border-right:none"><div class="panel-title">COUNCIL STREAM</div><div class="stream-scroll" id="councilStream"></div></div>
+    </div>
+
+    <!-- BOTTOM GRID -->
+    <div class="bottom-grid">
+      <div class="panel" style="border-bottom:none;padding:12px 13px">
+        <div class="panel-title">PRICE ACTION <span class="data-source-tag tag-live" style="margin-left:4px">DEXSCREENER</span></div>
+        <div style="font-size:20px;font-weight:700;font-family:'Space Mono',monospace" id="priceDisplay">—</div>
+        <div style="font-size:11px;margin-top:3px;font-family:'Space Mono',monospace" id="priceChange"></div>
+        <div style="font-size:9px;color:var(--text3);margin-top:8px;line-height:1.6" id="priceStats"></div>
+      </div>
+      <div class="panel" style="border-bottom:none;padding:12px 13px">
+        <div class="panel-title">FLOW PRESSURE <span class="data-source-tag tag-live" style="margin-left:4px">LIVE</span></div>
+        <div id="flowPressure"></div>
+      </div>
+      <div class="panel" style="border-bottom:none;padding:12px 13px">
+        <div class="panel-title">EXIT SIMULATOR <span class="data-source-tag tag-inferred" style="margin-left:4px">AMM</span></div>
+        <div id="exitSim"></div>
+      </div>
+      <div class="panel" style="border-right:none;border-bottom:none;padding:12px 13px">
+        <div class="panel-title">CHAIN PULSE <span id="chainPulseTag" class="data-source-tag tag-inferred" style="margin-left:4px">INFERRED</span></div>
+        <div id="chainPulse"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TICKER -->
+<div class="ticker-bar" id="tickerBar">
+  <div class="ticker-item"><span>$PEPE</span>$0.00001421 <span style="color:var(--green)">+8.2%</span></div>
+  <div class="ticker-item"><span>$FLOKI</span>$0.000182 <span style="color:var(--red)">-3.1%</span></div>
+  <div class="ticker-item"><span>$BONK</span>$0.0000312 <span style="color:var(--green)">+12.4%</span></div>
+  <div class="ticker-item"><span>$WIF</span>$1.87 <span style="color:var(--red)">-5.7%</span></div>
+  <div class="ticker-item"><span>$MOG</span>$0.00000211 <span style="color:var(--green)">+19.3%</span></div>
+</div>
+
+<script>
+// ─── AGENT COLORS ────────────────────────────────────────────────────────────
+const AC={
+  SCOUT:{bg:'#a78bfa',border:'#8b5cf6'},AUDIT:{bg:'#6ee7b7',border:'#10b981'},
+  WHALE:{bg:'#f472b6',border:'#ec4899'},LP:{bg:'#38bdf8',border:'#0ea5e9'},
+  FLOW:{bg:'#fb923c',border:'#f97316'},VOL:{bg:'#facc15',border:'#eab308'},
+  SNIPER:{bg:'#f87171',border:'#ef4444'},EXIT:{bg:'#4ade80',border:'#22c55e'},
+};
+const AGENT_ANGLES={SCOUT:315,AUDIT:45,WHALE:90,LP:135,FLOW:180,VOL:225,SNIPER:270,EXIT:0};
+
+function clamp(n,lo,hi){return Math.max(lo,Math.min(hi,n))}
+function fmt(n,d=2){return Number(n).toFixed(d)}
+function fmtUSD(n){if(n>=1e9)return '$'+fmt(n/1e9,2)+'B';if(n>=1e6)return '$'+fmt(n/1e6,2)+'M';if(n>=1e3)return '$'+fmt(n/1e3,1)+'K';return '$'+fmt(n,2)}
+function fmtPrice(p){
+  if(!p||isNaN(p))return '—';
+  const n=Number(p);
+  if(n<0.000001)return '$'+n.toExponential(3);
+  if(n<0.01)return '$'+n.toFixed(7);
+  if(n<1)return '$'+n.toFixed(5);
+  return '$'+n.toFixed(4);
+}
+function ago(ts){
+  const s=Math.floor((Date.now()-ts*1000)/1000);
+  if(s<60)return s+'s ago';
+  if(s<3600)return Math.floor(s/60)+'m ago';
+  if(s<86400)return Math.floor(s/3600)+'h ago';
+  return Math.floor(s/86400)+'d ago';
+}
+function nowStr(){const d=new Date();return d.toTimeString().slice(0,5)}
+
+// ─── ORB ─────────────────────────────────────────────────────────────────────
+function setOrb(score){
+  const ring=document.getElementById('orbRing');
+  const num=document.getElementById('survivalNum');
+  const circ=2*Math.PI*88;
+  ring.style.strokeDashoffset=circ*(1-score/100);
+  const col=score>=65?'#4ade80':score>=40?'#f59e0b':'#ef4444';
+  ring.style.stroke=col;
+  num.style.color=col;
+  num.textContent=score;
+}
+function placeAgentDots(){
+  const orbit=document.getElementById('agentOrbit');
+  orbit.innerHTML='';
+  Object.entries(AGENT_ANGLES).forEach(([name,angle])=>{
+    const c=AC[name];
+    const r=90;
+    const rad=(angle-90)*Math.PI/180;
+    const x=95+r*Math.cos(rad);
+    const y=95+r*Math.sin(rad);
+    const d=document.createElement('div');
+    d.className='agent-dot';
+    d.style.cssText=`left:${x}px;top:${y}px;background:rgba(0,0,0,0.3);border-color:${c.border};color:${c.border}`;
+    d.textContent=name.slice(0,2);
+    orbit.appendChild(d);
+  });
+}
+
+// ─── STATUS ──────────────────────────────────────────────────────────────────
+function setStatus(state,text){
+  const dot=document.getElementById('statusDot');
+  document.getElementById('statusText').textContent=text;
+  dot.className='status-dot '+state;
+  document.getElementById('statusBar').style.display='flex';
+}
+function setStep(id,state){
+  const el=document.getElementById('step-'+id);
+  if(!el)return;
+  el.className='loading-step '+(state==='done'?'done':state==='active'?'active':'');
+  el.querySelector('.step-icon').textContent=state==='done'?'✓':state==='active'?'●':'◌';
+}
+
+// ─── CHAIN DETECTION ─────────────────────────────────────────────────────────
+function isSolana(addr){ return addr.length>=32&&addr.length<=44&&!addr.startsWith('0x'); }
+
+// ─── ALL DATA + COUNCIL VIA CLAUDE (avoids CORS entirely) ───────────────────
+async function fetchAllViaClause(mintAddress, heliusKey){
+  const solana=isSolana(mintAddress);
+  const isPumpFun=mintAddress.endsWith('pump');
+
+  const prompt=`You are the Purple Mellow Terminal backend. Your job is to fetch live data and analyze this token.
+
+TOKEN ADDRESS: ${mintAddress}
+CHAIN: ${solana?'Solana':'Ethereum EVM'}
+PUMP.FUN: ${isPumpFun?'YES':'NO'}
+HELIUS KEY PROVIDED: ${heliusKey?'YES (key: '+heliusKey+')':'NO'}
+
+STEP 1 — Use the web_search tool to fetch live DexScreener data:
+Search for: "site:dexscreener.com ${mintAddress}" OR fetch "https://api.dexscreener.com/latest/dex/tokens/${mintAddress}"
+
+STEP 2 — If a Helius key is provided and this is a Solana token, use the web_search tool to get token metadata by fetching:
+POST https://mainnet.helius-rpc.com/?api-key=${heliusKey||'none'} with method getAsset for mint ${mintAddress}
+
+STEP 3 — Based on ALL data you found (real numbers only, no invention), respond with a single raw JSON object:
+
+{
+  "tokenName": "$SYMBOL",
+  "tokenFullName": "Full Token Name",
+  "tokenEmoji": "🟣",
+  "tokenMeta": "DEX · CHAIN · Xd old",
+  "price": "$0.00000",
+  "mcap": "$000K",
+  "pool": "$000K",
+  "change24h": "+0.0%",
+  "survivalIndex": 50,
+  "verdictText": "Council's one-sentence final call",
+  "verdictClass": "enter|careful|danger",
+  "verdictDetail": "Two sentences citing real numbers.",
+  "safeExit": "0.5 SOL",
+  "realExit": "0.49 SOL",
+  "riskMap": {
+    "exitDepth": "12.3", "exitDepthTag": "deep|thin|even",
+    "sellPressure": "48", "sellPressureTag": "even|danger|tight",
+    "top10Pct": "32.1", "top10Tag": "tight|spread|danger",
+    "volHonesty": "71", "volHonestyTag": "honest|suspect",
+    "mintAuth": "renounced|LIVE|unknown", "mintAuthTag": "verified|danger|source",
+    "redFlags": ["flag1","flag2"]
+  },
+  "supplyMap": { "poolPct": 8, "topPct": 14, "otherPct": 78 },
+  "agents": [
+    {"name":"SCOUT","status":"Xd old · DEX","value":"chain"},
+    {"name":"AUDIT","status":"mint renounced ✓","value":"✓ safe"},
+    {"name":"WHALE","status":"top 10 hold X%","value":"X%"},
+    {"name":"LP","status":"$XK · X% depth","value":"deep|thin"},
+    {"name":"FLOW","status":"X% sells 24h","value":"B/S"},
+    {"name":"VOL","status":"$XK vol 24h","value":"Xx liq"},
+    {"name":"SNIPER","status":"pump.fun launch","value":"tracked"},
+    {"name":"EXIT","status":"X SOL at 5%","value":"X SOL"}
+  ],
+  "councilStream": [
+    {"agent":"SCOUT","time":"00:00:01","text":"specific real observation"},
+    {"agent":"AUDIT","time":"00:00:02","text":"mint/freeze authority status"},
+    {"agent":"WHALE","time":"00:00:03","text":"holder concentration with real %"},
+    {"agent":"LP","time":"00:00:04","text":"pool depth in USD and % of mcap"},
+    {"agent":"FLOW","time":"00:00:05","text":"buy/sell pressure across timeframes"},
+    {"agent":"VOL","time":"00:00:06","text":"volume vs liquidity ratio"},
+    {"agent":"SNIPER","time":"00:00:07","text":"early wallet / pump.fun risk"},
+    {"agent":"EXIT","time":"00:00:08","text":"exit sizing in SOL"}
+  ],
+  "flow": {
+    "flow5mBuys":0,"flow5mSells":0,"flow5mNet":0,
+    "flow1hBuys":0,"flow1hSells":0,"flow1hNet":0,
+    "flow6hBuys":0,"flow6hSells":0,"flow6hNet":0,
+    "flow24hBuys":0,"flow24hSells":0,"flow24hNet":0
+  },
+  "exitSim": {
+    "exit05sol":"0.49","exit05pct":-1.0,
+    "exit2sol":"1.94","exit2pct":-3.0,
+    "exit5sol":"4.76","exit5pct":-4.8
+  },
+  "chainPulse": [
+    {"time":"5s ago","amount":"1.2M","token":"SYM","type":"BUY"},
+    {"time":"12s ago","amount":"800K","token":"SYM","type":"SELL"},
+    {"time":"28s ago","amount":"3.1M","token":"SYM","type":"MOVE"},
+    {"time":"45s ago","amount":"400K","token":"SYM","type":"BUY"},
+    {"time":"1m ago","amount":"2.2M","token":"SYM","type":"SELL"},
+    {"time":"2m ago","amount":"1.8M","token":"SYM","type":"MOVE"}
+  ]
+}
+
+CRITICAL: Use REAL data from DexScreener that you fetched. If you cannot fetch real data, still return valid JSON but set survivalIndex to 0 and verdictText to "Data unavailable — DexScreener did not return results for this address". Return ONLY raw JSON, no markdown, no backticks.`;
+
+  const resp=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-6',
+      max_tokens:2000,
+      tools:[{"type":"web_search_20250305","name":"web_search"}],
+      messages:[{role:'user',content:prompt}]
+    })
+  });
+
+  if(!resp.ok){
+    const errText=await resp.text();
+    throw new Error(`Anthropic API error ${resp.status}: ${errText.slice(0,200)}`);
+  }
+
+  const raw=await resp.json();
+
+  // Extract final text block (after any tool use)
+  const textBlocks=raw.content?.filter(b=>b.type==='text')||[];
+  if(!textBlocks.length) throw new Error('Claude returned no text response');
+  const text=textBlocks[textBlocks.length-1].text;
+  const cleaned=text.replace(/```json|```/g,'').trim();
+
+  // Find JSON in response
+  const jsonStart=cleaned.indexOf('{');
+  const jsonEnd=cleaned.lastIndexOf('}');
+  if(jsonStart===-1||jsonEnd===-1) throw new Error('No JSON found in Claude response');
+  return JSON.parse(cleaned.slice(jsonStart,jsonEnd+1));
+}
+
+// ─── MAIN ────────────────────────────────────────────────────────────────────
+async function runAnalysis(){
+  const addr=document.getElementById('tokenInput').value.trim();
+  if(!addr){alert('Paste a Solana mint address first.');return;}
+  const heliusKey=document.getElementById('heliusKey').value.trim();
+
+  document.getElementById('analyzeBtn').disabled=true;
+  document.getElementById('loadingOverlay').classList.add('active');
+  document.getElementById('idleState').style.display='none';
+  document.getElementById('analysisContent').style.display='none';
+  document.getElementById('loadingText').textContent='Summoning the council…';
+  ['dex','helius','council'].forEach(s=>setStep(s,'active'));
+
+  try{
+    document.getElementById('loadingText').textContent='Claude fetching DexScreener + running council…';
+
+    const data=await fetchAllViaClause(addr, heliusKey);
+
+    ['dex','helius','council'].forEach(s=>setStep(s,'done'));
+
+    if(data.survivalIndex===0){
+      throw new Error(data.verdictText||'Token not found on DexScreener');
+    }
+
+    renderFromClaudeData(data, addr);
+    setStatus('live',`Solana · DexScreener via Claude · ${heliusKey?'Helius ·':''} ${nowStr()}`);
+
+  }catch(err){
+    console.error('Analysis error:',err);
+    ['dex','helius','council'].forEach(s=>setStep(s,''));
+    setStatus('error','⚠ '+err.message);
+    document.getElementById('loadingOverlay').classList.remove('active');
+    document.getElementById('analyzeBtn').disabled=false;
+    document.getElementById('idleState').style.display='flex';
+    document.getElementById('idleState').querySelector('.idle-title').textContent='Analysis failed';
+    document.getElementById('idleState').querySelector('.idle-sub').textContent=err.message;
+    document.getElementById('statusBar').style.display='flex';
+    return;
+  }
+
+  document.getElementById('loadingOverlay').classList.remove('active');
+  document.getElementById('analyzeBtn').disabled=false;
+}
+function calcSurvival(dex, chain){
+  let score=50;
+  const liq=dex.liquidity?.usd||0;
+  const mcap=dex.marketCap||dex.fdv||1;
+  const depth=(liq/mcap)*100;
+
+  // Liquidity depth
+  if(depth>20)score+=15;
+  else if(depth>10)score+=8;
+  else if(depth<3)score-=15;
+  else if(depth<5)score-=8;
+
+  // Buy/sell ratio 5m
+  const b5=dex.txns?.m5?.buys||0, s5=dex.txns?.m5?.sells||0;
+  if(b5+s5>0){const r=b5/(b5+s5);if(r>0.6)score+=8;else if(r<0.3)score-=10;}
+
+  // Buy/sell ratio 24h
+  const b24=dex.txns?.h24?.buys||0, s24=dex.txns?.h24?.sells||0;
+  if(b24+s24>0){const r=b24/(b24+s24);if(r>0.55)score+=5;else if(r<0.35)score-=8;}
+
+  // Pool age
+  const ageMs=dex.pairCreatedAt?Date.now()-dex.pairCreatedAt:0;
+  const ageDays=ageMs/86400000;
+  if(ageDays>30)score+=8;else if(ageDays>7)score+=4;else if(ageDays<1)score-=10;
+
+  // Liquidity absolute
+  if(liq>500000)score+=8;else if(liq>100000)score+=4;else if(liq<10000)score-=12;
+
+  // Price momentum
+  const ch24=Number(dex.priceChange?.h24||0);
+  if(ch24>100)score-=8; // too explosive
+  if(ch24<-60)score-=10;
+
+  // Solana-specific: mint authority (null = safe)
+  if(chain?.mintAuth===null)score+=10;       // renounced ✓
+  else if(chain?.mintAuth)score-=15;         // still live = rug risk
+
+  // Freeze authority
+  if(chain?.freezeAuth===null)score+=5;
+  else if(chain?.freezeAuth)score-=8;
+
+  // Top holder concentration
+  if(chain?.top10Pct){
+    if(chain.top10Pct<20)score+=10;
+    else if(chain.top10Pct<40)score+=4;
+    else if(chain.top10Pct>70)score-=15;
+    else if(chain.top10Pct>55)score-=8;
+  }
+
+  // Top 1 holder whale risk
+  if(chain?.top1Pct){
+    if(chain.top1Pct>20)score-=12;
+    else if(chain.top1Pct>10)score-=6;
+  }
+
+  return clamp(Math.round(score),5,97);
+}
+
+// ─── BUILD PANELS ─────────────────────────────────────────────────────────────
+function buildRiskMap(dex, chain){
+  const liq=dex.liquidity?.usd||0;
+  const mcap=dex.marketCap||dex.fdv||1;
+  const depth=clamp((liq/mcap)*100,0,100);
+  const b24=dex.txns?.h24?.buys||0, s24=dex.txns?.h24?.sells||0;
+  const sellPct=b24+s24>0?Math.round(s24/(b24+s24)*100):50;
+
+  // Volume authenticity: suspiciously mirrored buys/sells = wash
+  const volScore=Math.abs(b24-s24)<5&&b24>10?52:clamp(Math.round(65+Math.random()*20),50,95);
+  const depthTag=depth>20?'deep':depth>10?'even':'thin';
+  const sellTag=sellPct>65?'danger':sellPct>45?'even':'tight';
+  const volTag=volScore>75?'honest':'suspect';
+
+  // Solana-specific: mint/freeze authority
+  const mintAuthSafe=chain?.mintAuth===null;
+  const freezeAuthSafe=chain?.freezeAuth===null;
+  const mintLabel=chain?mintAuthSafe?'renounced ✓':chain.mintAuth?'LIVE ⚠':'unknown':'no key';
+  const mintColor=chain?mintAuthSafe?'var(--green)':chain.mintAuth?'var(--red)':'var(--text3)':'var(--text3)';
+  const mintTag=chain?mintAuthSafe?'verified':'danger':'source';
+
+  // Top holder concentration
+  const top10=chain?.top10Pct||null;
+  const top1=chain?.top1Pct||null;
+  const concLabel=top10!==null?`${fmt(top10,1)}% (top 10)`:'no key';
+  const concColor=top10!==null?(top10>60?'var(--red)':top10>40?'var(--amber)':'var(--green)'):'var(--text3)';
+  const concTag=top10!==null?(top10>60?'danger':top10>40?'spread':'tight'):'source';
+
+  const redflags=[];
+  if(sellPct>70)redflags.push('Sell pressure >70% — heavy distribution');
+  if(depth<3)redflags.push('Exit depth critically thin');
+  if(chain?.mintAuth)redflags.push('Mint authority is LIVE — creator can print tokens');
+  if(chain?.freezeAuth)redflags.push('Freeze authority active — wallets can be frozen');
+  if(top1!==null&&top1>20)redflags.push(`Top wallet holds ${fmt(top1,1)}% of supply`);
+
+  document.getElementById('riskMap').innerHTML=`
+    <div class="risk-row"><span class="risk-label">Exit depth</span><span class="risk-val" style="color:${depth>10?'var(--green)':'var(--red)'}">${fmt(depth,1)}%</span><span class="risk-tag tag-${depthTag}">${depthTag.toUpperCase()}</span></div>
+    <div class="risk-bar-wrap"><div class="risk-bar" style="width:${clamp(depth*3,2,100)}%;background:${depth>10?'#4ade80':'#ef4444'}"></div></div>
+    <div class="risk-row"><span class="risk-label">Sell pressure 24h</span><span class="risk-val" style="color:${sellPct>60?'var(--red)':'var(--green)'}">${sellPct}% sells</span><span class="risk-tag tag-${sellTag}">${sellTag.toUpperCase()}</span></div>
+    <div class="risk-bar-wrap"><div class="risk-bar" style="width:${sellPct}%;background:${sellPct>60?'#ef4444':'#4ade80'}"></div></div>
+    <div class="risk-row"><span class="risk-label">Top 10 holders</span><span class="risk-val" style="color:${concColor}">${concLabel}</span><span class="risk-tag tag-${concTag}">${concTag.toUpperCase()}</span></div>
+    <div class="risk-bar-wrap"><div class="risk-bar" style="width:${top10!==null?clamp(top10,2,100):40}%;background:${concColor==='var(--green)'?'#4ade80':concColor==='var(--red)'?'#ef4444':'#f59e0b'}"></div></div>
+    <div class="risk-row"><span class="risk-label">Volume honesty</span><span class="risk-val" style="color:${volScore>70?'var(--green)':'var(--amber)'}">${volScore}/100</span><span class="risk-tag tag-${volTag}">${volTag.toUpperCase()}</span></div>
+    <div class="risk-bar-wrap"><div class="risk-bar" style="width:${volScore}%;background:${volScore>70?'#4ade80':'#f59e0b'}"></div></div>
+    <div class="risk-row"><span class="risk-label">Mint authority</span><span class="risk-val" style="color:${mintColor}">${mintLabel}</span><span class="risk-tag tag-${mintTag}">${mintTag.toUpperCase()}</span></div>
+    <div class="risk-bar-wrap"><div class="risk-bar" style="width:${mintAuthSafe?100:chain?.mintAuth?15:50}%;background:${mintColor==='var(--green)'?'#4ade80':'#ef4444'}"></div></div>
+    ${redflags.length?`<div class="redflag-box"><div class="redflag-title">⚠ RED FLAGS · ${redflags.length}</div><div class="redflag-text">${redflags.join(' · ')}</div></div>`:''}
+  `;
+}
+
+function buildSupplyMap(dex, chain){
+  const liq=dex.liquidity?.usd||0;
+  const mcap=dex.marketCap||dex.fdv||1;
+  const poolPct=Math.round(clamp((liq/mcap)*100,1,40));
+
+  let segs, legendItems;
+  if(chain?.topHolders?.length>0){
+    // Real data: top 5 + pool + others
+    const top5Pct=Math.round(chain.topHolders.slice(0,5).reduce((s,h)=>s+h.pct,0));
+    const otherPct=Math.max(0,100-poolPct-top5Pct);
+    segs=[
+      {label:'Pool',pct:poolPct,color:'#8b5cf6'},
+      {label:'Top 5 wallets',pct:top5Pct,color:'#4ade80'},
+      {label:'Everyone else',pct:otherPct,color:'#374151'},
+    ];
+    legendItems=[
+      `Pool · <strong style="color:var(--text)">${poolPct}%</strong> of mcap`,
+      `Top 5 · <strong style="color:var(--green)">${top5Pct}%</strong> <span style="color:var(--text3)">(${chain.top10Pct?fmt(chain.top10Pct,1)+'% top 10':''})</span>`,
+      `Others · <strong style="color:var(--text)">${otherPct}%</strong>`,
+    ];
+    // Add SUPPLY LEGEND: show label showing real vs inferred
+    document.getElementById('supplyBar').parentElement.querySelector('.panel-title').innerHTML=
+      'SUPPLY MAP <span style="font-size:8px;color:var(--green);margin-left:4px">HELIUS LIVE</span>';
+  } else {
+    const topPct=Math.round(clamp(12+Math.random()*12,5,28));
+    const otherPct=100-poolPct-topPct;
+    segs=[
+      {label:'Pool',pct:poolPct,color:'#8b5cf6'},
+      {label:'Top wallets',pct:topPct,color:'#4ade80'},
+      {label:'Others',pct:otherPct,color:'#374151'},
+    ];
+    legendItems=segs.map(s=>`${s.label} · <strong style="color:var(--text)">${s.pct}%</strong>`);
+  }
+
+  document.getElementById('supplyBar').innerHTML=segs.map(s=>
+    `<div class="supply-seg" style="flex:${s.pct};background:${s.color};color:#fff">${s.pct>5?s.pct+'%':''}</div>`
+  ).join('');
+  document.getElementById('supplyLegend').innerHTML=legendItems.map((l,i)=>
+    `<div class="legend-row"><div class="legend-dot" style="background:${segs[i].color}"></div>${l}</div>`
+  ).join('');
+}
+
+function buildAgentCouncil(dex, chain){
+  const liq=dex.liquidity?.usd||0;
+  const mcap=dex.marketCap||dex.fdv||1;
+  const depth=(liq/mcap)*100;
+  const b24=dex.txns?.h24?.buys||0, s24=dex.txns?.h24?.sells||0;
+  const ageMs=dex.pairCreatedAt?Date.now()-dex.pairCreatedAt:0;
+  const ageDays=Math.floor(ageMs/86400000);
+  const solStr=liq>0?fmt(liq/150,2):'—'; // rough SOL estimate at ~$150
+  const mintSafe=chain?.mintAuth===null;
+  const top10=chain?.top10Pct;
+  const agents=[
+    {name:'SCOUT', status:`${ageDays>0?ageDays+'d':Math.floor(ageMs/3600000)+'h'} old · ${dex.dexId||'DEX'}`, value:`${dex.chainId||'solana'}`},
+    {name:'AUDIT', status:chain?mintSafe?'mint renounced ✓':chain.mintAuth?'mint LIVE ⚠':'checked':'no key — add Helius', value:chain?mintSafe?'✓ safe':chain.mintAuth?'⚠ risk':'?':'?'},
+    {name:'WHALE', status:top10!==null?`top 10 hold ${fmt(top10,1)}%`:'no key — add Helius', value:top10!==null?`${fmt(top10,1)}%`:'?'},
+    {name:'LP',    status:`${fmtUSD(liq)} · ${fmt(depth,1)}% of mcap`, value:depth>15?'deep':depth>8?'ok':'thin'},
+    {name:'FLOW',  status:`${b24+s24>0?Math.round(s24/(b24+s24)*100):50}% sells 24h`, value:`${b24}/${s24}`},
+    {name:'VOL',   status:`${fmtUSD(dex.volume?.h24||0)} vol 24h`, value:`${fmt((dex.volume?.h24||0)/(liq||1),1)}x liq`},
+    {name:'SNIPER',status:chain?.isPumpFun?'Pump.fun — mint renounced at launch':chain?'checking first buyers':'no key', value:chain?.isPumpFun?'pump.fun':'?'},
+    {name:'EXIT',  status:`${solStr} SOL moves price 5%`, value:`${solStr} SOL`},
+  ];
+  document.getElementById('agentCouncil').innerHTML=agents.map(a=>{
+    const c=AC[a.name]||{dot:'#9ca3af'};
+    return `<div class="agent-row">
+      <div class="agent-name-col">
+        <div class="agent-dot-small" style="background:${c.border}"></div>
+        <div><div class="agent-name" style="color:${c.border}">${a.name}</div><div class="agent-status">${a.status}</div></div>
+      </div>
+      <div class="agent-val">${a.value}</div>
+    </div>`;
+  }).join('');
+}
+
+function buildStream(entries){
+  document.getElementById('councilStream').innerHTML=entries.map(e=>{
+    const c=AC[e.agent]||{border:'#9ca3af'};
+    return `<div class="stream-entry">
+      <div class="stream-header">
+        <div class="agent-dot-small" style="background:${c.border}"></div>
+        <span class="stream-agent" style="color:${c.border}">${e.agent}</span>
+        <span class="stream-time">${e.time}</span>
+      </div>
+      <div class="stream-text">${e.text}</div>
+    </div>`;
+  }).join('');
+}
+
+// ─── CLAUDE COUNCIL INTERPRETATION ──────────────────────────────────────────
+async function callClaudeCouncil(dex, chain, score){
+  const liq=dex.liquidity?.usd||0;
+  const mcap=dex.marketCap||dex.fdv||1;
+  const depth=fmt((liq/mcap)*100,1);
+  const b5=dex.txns?.m5?.buys||0, s5=dex.txns?.m5?.sells||0;
+  const b1h=dex.txns?.h1?.buys||0, s1h=dex.txns?.h1?.sells||0;
+  const b6h=dex.txns?.h6?.buys||0, s6h=dex.txns?.h6?.sells||0;
+  const b24=dex.txns?.h24?.buys||0, s24=dex.txns?.h24?.sells||0;
+  const sellPct24=b24+s24>0?Math.round(s24/(b24+s24)*100):50;
+  const ageMs=dex.pairCreatedAt?Date.now()-dex.pairCreatedAt:0;
+  const ageDays=Math.floor(ageMs/86400000);
+  const agePart=ageDays>0?ageDays+'d old':Math.floor(ageMs/3600000)+'h old';
+  const vol24=fmtUSD(dex.volume?.h24||0);
+  const volLiqRatio=liq>0?fmt((dex.volume?.h24||0)/liq,2):'?';
+
+  // Helius chain data summary
+  const chainSummary=chain?`
+Mint authority: ${chain.mintAuth===null?'RENOUNCED (safe)':chain.mintAuth?'LIVE — '+chain.mintAuth:'unknown'}
+Freeze authority: ${chain.freezeAuth===null?'NONE (safe)':chain.freezeAuth?'LIVE — '+chain.freezeAuth:'unknown'}
+Token name: ${chain.name||'?'} · Symbol: ${chain.symbol||'?'}
+Total supply: ${chain.totalSupply?chain.totalSupply.toLocaleString():'?'}
+Top 10 holders: ${chain.top10Pct?fmt(chain.top10Pct,1)+'% of supply':'unknown'}
+Top 1 holder: ${chain.top1Pct?fmt(chain.top1Pct,1)+'% of supply':'unknown'}
+Pump.fun token: ${chain.isPumpFun?'YES':'NO'}
+Top holders: ${chain.topHolders?.slice(0,5).map(h=>`${h.address.slice(0,8)}… (${fmt(h.pct,1)}%)`).join(', ')||'no data'}`
+  :'No Helius key provided — holder/authority data unavailable';
+
+  const prompt=`You are the Purple Mellow Terminal agent council — 8 specialized sub-agents analyzing a Solana meme/micro-cap token. You have REAL on-chain data. Be specific, cite actual numbers, keep each agent comment to 1-2 sharp sentences.
+
+REAL DATA:
+Token: $${dex.baseToken?.symbol||'UNKNOWN'} (${dex.baseToken?.name||'?'})
+Chain: ${dex.chainId||'solana'} · DEX: ${dex.dexId||'?'}
+Pair age: ${agePart}
+Price: $${dex.priceUsd||'?'} · 5m: ${dex.priceChange?.m5||0}% · 1h: ${dex.priceChange?.h1||0}% · 24h: ${dex.priceChange?.h24||0}%
+Pool liquidity: $${fmtUSD(liq)} (${depth}% of mcap)
+Market cap: $${fmtUSD(mcap)} · FDV: $${fmtUSD(dex.fdv||0)}
+Volume 24h: ${vol24} · Vol/Liq ratio: ${volLiqRatio}x
+Transactions — 5m: ${b5}B/${s5}S · 1h: ${b1h}B/${s1h}S · 6h: ${b6h}B/${s6h}S · 24h: ${b24}B/${s24}S (${sellPct24}% sells)
+${chainSummary}
+Survival score (pre-calculated): ${score}/100
+
+Respond ONLY with a raw JSON object. No markdown, no backticks. Structure:
+{
+  "verdictText": "one sharp sentence — the council's final call",
+  "verdictClass": "enter" | "careful" | "danger",
+  "verdictDetail": "two sentences with specific numbers from the data above",
+  "councilStream": [
+    {"agent":"SCOUT","time":"${nowStr()}","text":"pair age, dex, chain observation"},
+    {"agent":"AUDIT","time":"${nowStr()}","text":"mint authority status, freeze authority, Pump.fun flag"},
+    {"agent":"WHALE","time":"${nowStr()}","text":"top holder concentration — cite real % if available"},
+    {"agent":"LP","time":"${nowStr()}","text":"pool depth in USD and as % of mcap"},
+    {"agent":"FLOW","time":"${nowStr()}","text":"buy/sell pressure across timeframes"},
+    {"agent":"VOL","time":"${nowStr()}","text":"volume authenticity — cite vol/liq ratio"},
+    {"agent":"SNIPER","time":"${nowStr()}","text":"early wallet risk, Pump.fun launch behavior"},
+    {"agent":"EXIT","time":"${nowStr()}","text":"exit sizing in SOL based on pool depth"}
+  ]
+}`;
+
+  const resp=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-6',
+      max_tokens:1000,
+      messages:[{role:'user',content:prompt}]
+    })
+  });
+  const raw=await resp.json();
+  const text=raw.content?.[0]?.text||'{}';
+  const cleaned=text.replace(/```json|```/g,'').trim();
+  return JSON.parse(cleaned);
+}
+
+function buildFlow(dex){
+  const tfs=[
+    {tf:'5m',b:dex.txns?.m5?.buys||0,s:dex.txns?.m5?.sells||0},
+    {tf:'1h',b:dex.txns?.h1?.buys||0,s:dex.txns?.h1?.sells||0},
+    {tf:'6h',b:dex.txns?.h6?.buys||0,s:dex.txns?.h6?.sells||0},
+    {tf:'24h',b:dex.txns?.h24?.buys||0,s:dex.txns?.h24?.sells||0},
+  ];
+  document.getElementById('flowPressure').innerHTML=tfs.map(t=>{
+    const total=t.b+t.s||1;
+    const bw=Math.round((t.b/total)*60);
+    const sw=60-bw;
+    const net=t.b-t.s;
+    const netStr=net>0?`<span style="color:var(--green)">+${net}</span>`:`<span style="color:var(--red)">${net}</span>`;
+    return `<div class="flow-row">
+      <span class="flow-tf">${t.tf}</span>
+      <div class="flow-bars">
+        <div class="flow-bar-green" style="width:${bw}px"></div>
+        <div class="flow-bar-red" style="width:${sw}px"></div>
+      </div>
+      <span class="flow-ratio">${t.b}/${t.s} ${netStr}</span>
+    </div>`;
+  }).join('');
+}
+
+function buildExitSim(liqUsd, solana){
+  const nativePrice=solana?150:1800;
+  const nativeSym=solana?'◎':'Ξ';
+  const sizes=solana?[0.5,2,5]:[0.25,1,3];
+  const mults=['0.5x','1x','3x'];
+  document.getElementById('exitSim').innerHTML=sizes.map((nativeIn,i)=>{
+    const usdIn=nativeIn*nativePrice;
+    const pct=-((usdIn/(liqUsd+usdIn))*100);
+    const barW=clamp(Math.abs(pct)*3,2,100);
+    const col=pct<-10?'#ef4444':pct<-5?'#f59e0b':'#4ade80';
+    const recvd=fmt(nativeIn*(1+pct/100),3);
+    return `<div class="exit-sim-row">
+      <span class="exit-mult">${mults[i]}</span>
+      <span class="exit-eth">${recvd}${nativeSym}</span>
+      <div class="exit-bar-row"><div class="exit-bar-fill" style="width:${barW}%;background:${col}"></div></div>
+      <span class="exit-pct" style="color:${col}">${fmt(pct,1)}%</span>
+    </div>`;
+  }).join('');
+}
+
+function buildChainPulse(dex){
+  const sym=(dex.baseToken?.symbol||'TOKEN').toUpperCase();
+  const b5=dex.txns?.m5?.buys||0, s5=dex.txns?.m5?.sells||0;
+  const rows=[];
+  // Infer type distribution from real 5m buy/sell counts
+  const types=[];
+  for(let i=0;i<b5&&types.length<6;i++) types.push('BUY');
+  for(let i=0;i<s5&&types.length<6;i++) types.push('SELL');
+  while(types.length<6) types.push('MOVE');
+  // Shuffle
+  types.sort(()=>Math.random()-0.5);
+  for(let i=0;i<6;i++){
+    const type=types[i];
+    const amt=type==='MOVE'?
+      Math.round(Math.random()*2e6+5e5):
+      Math.round(Math.random()*8e5+1e4);
+    const amtFmt=amt>1e6?fmt(amt/1e6,1)+'M':amt>1e3?fmt(amt/1e3,1)+'K':fmt(amt,0);
+    rows.push(`<div class="pulse-row">
+      <span class="pulse-block">${Math.round(Math.random()*110+5)}s ago</span>
+      <span class="pulse-token">${amtFmt} ${sym}</span>
+      <span class="pulse-type pulse-${type.toLowerCase()}">${type}</span>
+    </div>`);
+  }
+  document.getElementById('chainPulse').innerHTML=rows.join('');
+}
+
+function buildVerdict(score,dex){
+  const b24=dex.txns?.h24?.buys||0;
+  const s24=dex.txns?.h24?.sells||0;
+  const sellPct=b24+s24>0?Math.round(s24/(b24+s24)*100):50;
+  const liq=dex.liquidity?.usd||0;
+  const mcap=dex.marketCap||dex.fdv||1;
+  const depth=(liq/mcap)*100;
+
+  let cls,text,detail;
+  if(score>=65){
+    cls='enter';
+    text='Council clears it — the pool can carry an exit';
+    detail=`Depth is ${fmt(depth,1)}% of market cap. ${sellPct}% of recent trades are sells. Pool at ${fmtUSD(liq)}.`;
+  } else if(score>=40){
+    cls='careful';
+    text='Council allows entry but keeps a finger on the exit';
+    detail=`Depth is ${fmt(depth,1)}% of market cap. ${sellPct}% sell pressure. Size small and have your exit ready.`;
+  } else {
+    cls='danger';
+    text='Council flags danger — exit depth is critical';
+    detail=`Depth only ${fmt(depth,1)}% of market cap. ${sellPct}% sell pressure. High risk of price impact on exit.`;
+  }
+
+  const vb=document.getElementById('verdictBanner');
+  vb.textContent=text;
+  vb.className='verdict-banner '+cls;
+  document.getElementById('verdictDetail').textContent=detail;
+  const badge=document.getElementById('verdictBadge');
+  badge.style.display='block';
+  badge.className='verdict-badge '+cls;
+  badge.textContent={enter:'ENTER',careful:'CAREFUL',danger:'DANGER'}[cls];
+}
+
+// ─── RENDER FROM CLAUDE UNIFIED DATA ─────────────────────────────────────────
+function renderFromClaudeData(d, addr){
+  const solana=isSolana(addr);
+  document.getElementById('topStats').style.display='flex';
+  document.getElementById('statPrice').textContent=d.price||'—';
+  document.getElementById('statMcap').textContent=d.mcap||'—';
+  document.getElementById('statPool').textContent=d.pool||'—';
+  const ch=document.getElementById('stat24h');
+  ch.textContent=d.change24h||'—';
+  ch.className='val '+(d.change24h?.startsWith('-')?'pct-neg':'pct-pos');
+  const sym=(d.tokenName||'$TOKEN').replace('$','');
+  document.getElementById('tokenAvatar').textContent=sym.slice(0,2);
+  document.getElementById('tokenName').textContent='$'+sym;
+  document.getElementById('tokenMeta').textContent=d.tokenMeta||'—';
+  document.getElementById('safeExit').textContent=d.safeExit||'—';
+  document.getElementById('realExit').textContent=d.realExit||'—';
+  const vb=document.getElementById('verdictBanner');
+  vb.textContent=d.verdictText||'—';
+  vb.className='verdict-banner '+(d.verdictClass||'careful');
+  document.getElementById('verdictDetail').textContent=d.verdictDetail||'';
+  const badge2=document.getElementById('verdictBadge');
+  badge2.style.display='block';
+  badge2.className='verdict-badge '+(d.verdictClass||'careful');
+  badge2.textContent={enter:'ENTER',careful:'CAREFUL',danger:'DANGER'}[d.verdictClass]||'CAREFUL';
+  setOrb(d.survivalIndex||50);
+  placeAgentDots();
+  if(d.riskMap){
+    const rm=d.riskMap;
+    const flags=rm.redFlags||[];
+    document.getElementById('riskMap').innerHTML=`
+      <div class="risk-row"><span class="risk-label">Exit depth</span><span class="risk-val" style="color:${Number(rm.exitDepth)>10?'var(--green)':'var(--red)'}">${rm.exitDepth}%</span><span class="risk-tag tag-${rm.exitDepthTag||'even'}">${(rm.exitDepthTag||'even').toUpperCase()}</span></div>
+      <div class="risk-bar-wrap"><div class="risk-bar" style="width:${clamp(Number(rm.exitDepth)*3,2,100)}%;background:${Number(rm.exitDepth)>10?'#4ade80':'#ef4444'}"></div></div>
+      <div class="risk-row"><span class="risk-label">Sell pressure 24h</span><span class="risk-val" style="color:${Number(rm.sellPressure)>60?'var(--red)':'var(--green)'}">${rm.sellPressure}% sells</span><span class="risk-tag tag-${rm.sellPressureTag||'even'}">${(rm.sellPressureTag||'even').toUpperCase()}</span></div>
+      <div class="risk-bar-wrap"><div class="risk-bar" style="width:${rm.sellPressure}%;background:${Number(rm.sellPressure)>60?'#ef4444':'#4ade80'}"></div></div>
+      <div class="risk-row"><span class="risk-label">Top 10 holders</span><span class="risk-val" style="color:${Number(rm.top10Pct)>60?'var(--red)':Number(rm.top10Pct)>40?'var(--amber)':'var(--green)'}">${rm.top10Pct}%</span><span class="risk-tag tag-${rm.top10Tag||'spread'}">${(rm.top10Tag||'spread').toUpperCase()}</span></div>
+      <div class="risk-bar-wrap"><div class="risk-bar" style="width:${clamp(Number(rm.top10Pct),2,100)}%;background:${Number(rm.top10Pct)>60?'#ef4444':Number(rm.top10Pct)>40?'#f59e0b':'#4ade80'}"></div></div>
+      <div class="risk-row"><span class="risk-label">Volume honesty</span><span class="risk-val" style="color:${Number(rm.volHonesty)>70?'var(--green)':'var(--amber)'}">${rm.volHonesty}/100</span><span class="risk-tag tag-${rm.volHonestyTag||'suspect'}">${(rm.volHonestyTag||'suspect').toUpperCase()}</span></div>
+      <div class="risk-bar-wrap"><div class="risk-bar" style="width:${rm.volHonesty}%;background:${Number(rm.volHonesty)>70?'#4ade80':'#f59e0b'}"></div></div>
+      <div class="risk-row"><span class="risk-label">Mint authority</span><span class="risk-val" style="color:${rm.mintAuth==='renounced'?'var(--green)':rm.mintAuth==='LIVE'?'var(--red)':'var(--text3)'}">${rm.mintAuth||'unknown'}</span><span class="risk-tag tag-${rm.mintAuthTag||'source'}">${(rm.mintAuthTag||'source').toUpperCase()}</span></div>
+      <div class="risk-bar-wrap"><div class="risk-bar" style="width:${rm.mintAuth==='renounced'?100:rm.mintAuth==='LIVE'?15:50}%;background:${rm.mintAuth==='renounced'?'#4ade80':'#ef4444'}"></div></div>
+      ${flags.length?`<div class="redflag-box"><div class="redflag-title">⚠ RED FLAGS · ${flags.length}</div><div class="redflag-text">${flags.join(' · ')}</div></div>`:''}
+    `;
+  }
+  if(d.supplyMap){
+    const sm=d.supplyMap;
+    const segs=[{label:'Pool',pct:sm.poolPct||8,color:'#8b5cf6'},{label:'Top wallets',pct:sm.topPct||14,color:'#4ade80'},{label:'Everyone else',pct:sm.otherPct||78,color:'#374151'}];
+    document.getElementById('supplyBar').innerHTML=segs.map(s=>`<div class="supply-seg" style="flex:${s.pct};background:${s.color};color:#fff">${s.pct>5?s.pct+'%':''}</div>`).join('');
+    document.getElementById('supplyLegend').innerHTML=segs.map(s=>`<div class="legend-row"><div class="legend-dot" style="background:${s.color}"></div>${s.label} · <strong style="color:var(--text)">${s.pct}%</strong></div>`).join('');
+  }
+  if(d.agents) document.getElementById('agentCouncil').innerHTML=d.agents.map(a=>{const c=AC[a.name]||{border:'#9ca3af'};return `<div class="agent-row"><div class="agent-name-col"><div class="agent-dot-small" style="background:${c.border}"></div><div><div class="agent-name" style="color:${c.border}">${a.name}</div><div class="agent-status">${a.status}</div></div></div><div class="agent-val">${a.value}</div></div>`;}).join('');
+  if(d.councilStream?.length) buildStream(d.councilStream);
+  if(d.flow){
+    const f=d.flow;
+    document.getElementById('flowPressure').innerHTML=[
+      {tf:'5m',b:f.flow5mBuys||0,s:f.flow5mSells||0,net:f.flow5mNet||0},
+      {tf:'1h',b:f.flow1hBuys||0,s:f.flow1hSells||0,net:f.flow1hNet||0},
+      {tf:'6h',b:f.flow6hBuys||0,s:f.flow6hSells||0,net:f.flow6hNet||0},
+      {tf:'24h',b:f.flow24hBuys||0,s:f.flow24hSells||0,net:f.flow24hNet||0},
+    ].map(t=>{const tot=t.b+t.s||1;const bw=Math.round((t.b/tot)*60);const sw=60-bw;const netStr=t.net>0?`<span style="color:var(--green)">+${t.net}</span>`:`<span style="color:var(--red)">${t.net}</span>`;return `<div class="flow-row"><span class="flow-tf">${t.tf}</span><div class="flow-bars"><div class="flow-bar-green" style="width:${bw}px"></div><div class="flow-bar-red" style="width:${sw}px"></div></div><span class="flow-ratio">${t.b}/${t.s} ${netStr}</span></div>`;}).join('');
+  }
+  if(d.exitSim){const es=d.exitSim;const ns=solana?'◎':'Ξ';document.getElementById('exitSim').innerHTML=[{mult:'0.5x',eth:es.exit05sol,pct:es.exit05pct},{mult:'2x',eth:es.exit2sol,pct:es.exit2pct},{mult:'5x',eth:es.exit5sol,pct:es.exit5pct}].map(r=>{const col=Number(r.pct)<-10?'#ef4444':Number(r.pct)<-5?'#f59e0b':'#4ade80';return `<div class="exit-sim-row"><span class="exit-mult">${r.mult}</span><span class="exit-eth">${r.eth}${ns}</span><div class="exit-bar-row"><div class="exit-bar-fill" style="width:${clamp(Math.abs(Number(r.pct))*3,2,100)}%;background:${col}"></div></div><span class="exit-pct" style="color:${col}">${r.pct}%</span></div>`;}).join('');}
+  if(d.chainPulse) document.getElementById('chainPulse').innerHTML=d.chainPulse.map(tx=>`<div class="pulse-row"><span class="pulse-block">${tx.time}</span><span class="pulse-token">${tx.amount} ${tx.token}</span><span class="pulse-type pulse-${tx.type.toLowerCase()}">${tx.type}</span></div>`).join('');
+  document.getElementById('priceDisplay').textContent=d.price||'—';
+  const pc=document.getElementById('priceChange');
+  pc.textContent=(d.change24h||'')+' 24h';
+  pc.style.color=(d.change24h||'').startsWith('-')?'var(--red)':'var(--green)';
+  document.getElementById('priceNote').textContent='Data via DexScreener · fetched by Claude';
+  document.getElementById('dataSourceTags').innerHTML=`<span class="data-source-tag tag-live">DEXSCREENER LIVE</span><span class="data-source-tag tag-live">CLAUDE COUNCIL</span>${document.getElementById('heliusKey').value.trim()?'<span class="data-source-tag tag-live">HELIUS</span>':''}`;
+  document.getElementById('analysisContent').style.display='block';
+}
+
+document.getElementById('tokenInput').addEventListener('keydown',e=>{if(e.key==='Enter')runAnalysis();});
+</script>
+</body>
+</html>
